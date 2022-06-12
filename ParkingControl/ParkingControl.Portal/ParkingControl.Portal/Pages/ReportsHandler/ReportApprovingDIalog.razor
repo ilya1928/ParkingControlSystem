@@ -1,0 +1,52 @@
+﻿@page "/reportapprovingdialog/{ReportId}"
+
+@inject IReportService ReportService
+@inject IEvacuationCrewService EvacuationCrewService
+@inject Radzen.DialogService DialogService
+
+@if (evacuationCrews != null)
+{
+    <RadzenCard>
+        <RadzenGrid Data="evacuationCrews" AllowPaging="true" AllowSorting="true"
+                    TItem="EvacuationCrew" SelectionMode="DataGridSelectionMode.Single"
+                    RowSelect="(args) => SelectCrew(args)" RowDeselect="(args) => DeselectCrew()"
+                    Style="margin-bottom: 20px">
+            <Columns>
+                <RadzenGridColumn TItem="EvacuationCrew" Property="Name" Title="Name" />
+                <RadzenGridColumn TItem="EvacuationCrew" Property="AppointedReports" Title="Appointed reports" />
+            </Columns>
+        </RadzenGrid>
+        <div style="display: block; margin: auto;">
+            <RadzenButton Text="Assign" Style="width:150px;" 
+                          Disabled="@(selectedCrew == null)" Click="() => AssignReportToCrew()" />
+            <RadzenButton Text="Cancel" Style="width:150px;" Click="(args) => DialogService.Close(false)" />
+        </div>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter]
+    public string ReportId { get; set; }
+
+    private IEnumerable<EvacuationCrew> evacuationCrews;
+    private EvacuationCrew selectedCrew;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var guidReportId = Guid.Parse(ReportId);
+        var evacuationDetails = await ReportService.GetEvacuationDetails(guidReportId);
+
+        evacuationCrews = await EvacuationCrewService.GetSuitableCrewAsync(evacuationDetails);
+    }
+
+    private void SelectCrew(EvacuationCrew selectedCrew) => this.selectedCrew = selectedCrew;
+    private void DeselectCrew() => this.selectedCrew = null;
+
+    private async Task AssignReportToCrew()
+    {
+        var guidReportId = Guid.Parse(ReportId);
+        await ReportService.AssignReportToCrew(guidReportId, selectedCrew.Id);
+
+        DialogService.Close(true);
+    }
+}

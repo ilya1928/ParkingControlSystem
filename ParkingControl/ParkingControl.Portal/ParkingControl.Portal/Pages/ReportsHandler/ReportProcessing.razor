@@ -1,0 +1,140 @@
+﻿@page "/reportprocessing/{ReportId}"
+
+@inject IReportService ReportService
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+
+@attribute [Authorize(Roles = RolesConstants.ReportsHandler)]
+
+<RadzenCard Style="margin-bottom: 20px">
+    @if (report != null)
+    {
+        <RadzenPanel AllowCollapse="true" Style="margin-bottom: 20px">
+            <HeaderTemplate>
+                <span style="display: inline-flex; align-items: center;">
+                    <RadzenIcon Icon="info" Style="margin-right: 5px" />
+                    <b style="font-size:25px">Main details</b>
+                </span>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCard>
+                    <div class="row" style="margin-bottom: 15px">
+                        <div class="col-6">
+                            <div><b>Date: </b></div>
+                            <p>@report.ReportedDate</p>
+                        </div>
+                        <div class="col-6">
+                            <div>
+                                <b>Is processed: </b>
+                                <p>@(report.IsProcessed ? "Yes" : "No")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom: 15px">
+                        <div class="col-6">
+                            <div><b>Location: </b></div>
+                            <p>@report.LocationString</p>
+                        </div>
+                        <div class="col-6">
+                            <div>
+                                <b>Is approved: </b>
+                                <p>@(report.IsApproved ? "Yes" : "No")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-bottom: 15px">
+                        <div class="col-12">
+                            <div><b>Additional info: </b></div>
+                            <p>@report.AdditionalInfo</p>
+                        </div>
+                    </div>
+                </RadzenCard>
+            </ChildContent>
+        </RadzenPanel>
+        <RadzenPanel AllowCollapse="true" Style="margin-bottom: 20px">
+            <HeaderTemplate>
+                <span style="display: inline-flex; align-items: center;">
+                    <RadzenIcon Icon="perm_identity" Style="margin-right: 5px" />
+                    <b style="font-size:25px">Vehicle infromation</b>
+                </span>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCard>
+                    <div class="row">
+                        <div class="col-6">
+                            <p style="margin-bottom: 15px"><b>Government number:</b> @report.ReportVehicle.GovernmentNumber</p>
+                            <p style="margin-bottom: 15px"><b>Model:</b> @report.ReportVehicle.Model</p>
+                            <p style="margin-bottom: 15px"><b>Vahicle Type:</b> @report.ReportVehicle.VehicleTypeName</p>
+                            <p style="margin-bottom: 15px"><b>Size:</b> @report.ReportVehicle.Length x @report.ReportVehicle.Width</p>
+                            <p style="margin-bottom: 15px"><b>Weight:</b> @report.ReportVehicle.Weight</p>
+                        </div>
+                        <div class="col-6">
+                            <p style="margin-bottom: 15px"><b>Owner:</b> @report.ReportVehicle.OwnerName</p>
+                            <p style="margin-bottom: 15px"><b>Phone number:</b> @report.ReportVehicle.OwnerPhoneNumber</p>
+                            <p style="margin-bottom: 15px"><b>Identification number:</b> @report.ReportVehicle.OwnerIdentificationNumber</p>
+                        </div>
+                    </div>
+                </RadzenCard>
+            </ChildContent>
+        </RadzenPanel>
+        <RadzenPanel AllowCollapse="true" Style="margin-bottom: 20px">
+            <HeaderTemplate>
+                <span style="display: inline-flex; align-items: center;">
+                    <RadzenIcon Icon="photo_camera" Style="margin-right: 5px" />
+                    <b style="font-size:25px">Photo</b>
+                </span>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCard>
+                    <RadzenImage Path="@panoramaPhotoLink"
+                                 Style="width: auto; max-height: 300px; display: block; margin: auto;" />
+                </RadzenCard>
+            </ChildContent>
+        </RadzenPanel>
+        if (report.IsCompleted)
+        {
+            <div style="display: block; margin: auto;">
+                <b>Reported vehicle has been successfully evacuated.</b>
+            </div>
+        }
+        else
+        {
+            <div style="display: block; margin: auto;">
+                <RadzenButton Text=@(!report.IsApproved ? "Approve" : "Reassign") 
+                              Style="width: 150px"
+                              Click="@(args => DialogService.Open<ReportApprovingDialog>("Report approving",
+                                new Dictionary<string, object>() { { "ReportId", ReportId } }))" />
+
+                <RadzenButton Text=@(!report.IsApproved && report.IsCompleted ? "Edit rej." : "Reject") Style="width: 150px"
+                              Click="@(args => DialogService.Open<ReportRejectingDialog>("Report rejecting",
+                                new Dictionary<string, object>() { { "ReportId", ReportId } }))" />
+            </div>
+        }
+    }
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public string ReportId { get; set; }
+
+    private Report report;
+    private string panoramaPhotoLink;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var guidReportId = Guid.Parse(ReportId);
+        report = await ReportService.GetReportByIdAsync(guidReportId);
+
+        panoramaPhotoLink = ReportService.GetReportPanoramaLink(guidReportId);
+
+        DialogService.OnClose += DialogCloseAsync;
+    }
+
+    async void DialogCloseAsync(dynamic result)
+    {
+        var guidReportId = Guid.Parse(ReportId);
+        report = await ReportService.GetReportByIdAsync(guidReportId);
+
+        StateHasChanged();
+    }
+}

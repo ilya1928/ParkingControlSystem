@@ -1,0 +1,57 @@
+﻿<div class="row">
+    <div class="col-6">
+        <RadzenChart>
+            <RadzenDonutSeries Data="AssignedReports" CategoryProperty="Status" ValueProperty="Count">
+                <TitleTemplate>
+                    <div class="rz-donut-content">
+                        <div>Assigned reports</div>
+                    </div>
+                </TitleTemplate>
+            </RadzenDonutSeries>
+        </RadzenChart>
+    </div>
+    <div class="col-6">
+        <RadzenChart>
+            <RadzenDonutSeries Data="ProcessedReports" CategoryProperty="Status" ValueProperty="Count">
+                <TitleTemplate>
+                    <div class="rz-donut-content">
+                        <div>Processed reports</div>
+                    </div>
+                </TitleTemplate>
+            </RadzenDonutSeries>
+        </RadzenChart>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<Report> Reports { get; set; }
+
+    private List<DataItem> AssignedReports = new List<DataItem>();
+    private List<DataItem> ProcessedReports = new List<DataItem>();
+
+    protected override void OnInitialized()
+    {
+        var reportsCount = Reports.Count();
+        var processedReportsCount = Reports.Where(r => r.IsProcessed).Count();
+        var approvedReportsCount = Reports.Where(r => r.IsApproved).Count();
+
+        AssignedReports.Add(new DataItem("Processed", processedReportsCount));
+        AssignedReports.Add(new DataItem("Not processed", reportsCount - processedReportsCount));
+
+        ProcessedReports.Add(new DataItem("Approved", approvedReportsCount));
+        ProcessedReports.Add(new DataItem("Refused", reportsCount - approvedReportsCount));
+    }
+
+    private class DataItem
+    {
+        public DataItem(string status, int count)
+        {
+            Status = status;
+            Count = count;
+        }
+
+        public string Status { get; set; }
+        public int Count { get; set; }
+    }
+}

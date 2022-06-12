@@ -1,0 +1,48 @@
+﻿@inject IReportsHandlerService reportsHandlerService
+
+<div class="row">
+    <div class="col-3" style="text-align: center">
+        <div style="display: inline-block; margin: 0 auto;">
+            <RadzenImage Path="@ReportsHandler.ImageUri" Style="border-radius: 50%; width: 100%; margin-bottom: 20px" />
+            <div>
+                <RadzenUpload Multiple="false" Url="upload/single" Complete="@(args => OnImageUploadCompleteAsync(args))" Accept=".jpg" Style="margin-bottom: 5px;" />
+                <RadzenButton Icon="delete" Click="RemoveProfileImageAsync" Style="background-color:#479cc8; height: 35px;" />
+            </div>
+        </div>
+    </div>
+    <div class="col-9" style="padding-left: 30px; padding-top: 10px">
+        <h1>@ReportsHandler.Name</h1>
+        <div>
+            <div style="margin-bottom: 5px;">
+                <b>Email: </b>
+                <p>@ReportsHandler.ApplicationUser.Email</p>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <b>Phone: </b>
+                <p>@ReportsHandler.ApplicationUser.PhoneNumber</p>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <b>Districts: </b>
+                <p>@String.Join(", ", ReportsHandler.ReportsHandlerDistricts.Select(rhd => rhd.District.Name))</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public ReportsHandler ReportsHandler { get; set; }
+
+    private async Task OnImageUploadCompleteAsync(UploadCompleteEventArgs args)
+    {
+        var uploadedFileId = JsonConvert.DeserializeObject<Guid>(args.RawResponse);
+        await reportsHandlerService.UpdateProfileImageLinkAsync(uploadedFileId, ReportsHandler.Id);
+        StateHasChanged();
+    }
+
+    private async Task RemoveProfileImageAsync()
+    {
+        await reportsHandlerService.RemoveProfileImageAsync(ReportsHandler.Id);
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,123 @@
+﻿@page "/reporthandlers"
+
+@inject IReportsHandlerService reportHandlersService
+@inject ILocationService locationService
+@inject NavigationManager navigationManager
+@inject DialogService dialogService
+
+@attribute [Authorize(Roles = RolesConstants.Administrator)]
+
+@if (reportHandlers != null)
+{
+    <RadzenCard>
+        <div style="margin-bottom: 20px;">
+            <RadzenButton Icon="add" Text="Create handler"
+                          Click="@(args => dialogService.Open<ReportsHandlerAddingDialog>("Handler creating"))" />
+        </div>
+        <RadzenGrid Data="@reportsHandlerResponses" AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                    TItem="ReportsHandlerResponse" AllowColumnResize="true" RowClick="(args) => OpenReportsHandler(args.Id)">
+            <Columns>
+                <RadzenGridColumn TItem="ReportsHandlerResponse" Property="Name" Title="Name" Width="200px" />
+                <RadzenGridColumn TItem="ReportsHandlerResponse" Property="IsActive" Title="Is active" Width="100px">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="currentActiveState" TextProperty="Text" ValueProperty="Value" Style="width:100%"
+                                        Change=@OnFilterChange
+                                        Data="@(Enum.GetValues(typeof(BooleanState)).Cast<BooleanState>().Select(t => new { Text = $"{t}", Value = t }))" />
+
+                    </FilterTemplate>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="ReportsHandlerResponse" Property="ActiveReports" Title="Active reports" Width="150px" />
+                <RadzenGridColumn TItem="ReportsHandlerResponse" Property="Districts" Title="Districts" Bubble="true">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="currentDistrictIds" Multiple="true" Data="districts" TextProperty="Name" ValueProperty="Id"
+                                        Change="OnFilterChange" />
+                    </FilterTemplate>
+                </RadzenGridColumn>
+            </Columns>
+        </RadzenGrid>
+    </RadzenCard>
+}
+
+@code {
+    private IEnumerable<ReportsHandler> reportHandlers;
+    private IEnumerable<ReportsHandler> filteredReportHandlers;
+    private IEnumerable<ReportsHandlerResponse> reportsHandlerResponses;
+
+    private IEnumerable<District> districts;
+    private IEnumerable<Guid> currentDistrictIds;
+
+    private BooleanState currentActiveState = BooleanState.All;
+
+    public enum BooleanState : int
+    {
+        False,
+        True,
+        All = -1
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        reportHandlers = await reportHandlersService.GetReportsHandlersAsync();
+        districts = await locationService.GetDistrictsAsync();
+
+        currentDistrictIds = districts.Select(d => d.Id);
+        reportsHandlerResponses = ConvertGetResponse(reportHandlers);
+
+        dialogService.OnClose += DialogCloseAsync;
+    }
+
+    private void OnFilterChange()
+    {
+        filteredReportHandlers = reportHandlers;
+
+        if (currentActiveState != BooleanState.All)
+            filteredReportHandlers = filteredReportHandlers.Where(rh => rh.IsActive == Convert.ToBoolean(currentActiveState));
+
+        filteredReportHandlers = filteredReportHandlers.Where(rh => rh.ReportsHandlerDistricts.Select(rh => rh.DistrictId).Intersect(currentDistrictIds).Any());
+
+        reportsHandlerResponses = ConvertGetResponse(filteredReportHandlers);
+    }
+
+    private void OpenReportsHandler(Guid reportsHandlerId)
+    {
+        navigationManager.NavigateTo("/reportshandler" + "/" + reportsHandlerId);
+    }
+
+    private class ReportsHandlerResponse
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public bool IsActive { get; set; }
+        public int ActiveReports { get; set; }
+        public string Districts { get; set; }
+
+        public ReportsHandlerResponse(ReportsHandler reportsHandler)
+        {
+            Id = reportsHandler.Id;
+            Name = reportsHandler.Name;
+            IsActive = reportsHandler.IsActive;
+
+            ActiveReports = reportsHandler.Reports.Where(r => !r.IsProcessed).Count();
+            Districts = String.Join(", ", reportsHandler.ReportsHandlerDistricts.Select(r => r.District.Name));
+        }
+    }
+
+    private IEnumerable<ReportsHandlerResponse> ConvertGetResponse(IEnumerable<ReportsHandler> handlers)
+    {
+        var handlersResponse = new List<ReportsHandlerResponse>();
+
+        foreach (var handler in handlers)
+        {
+            handlersResponse.Add(new ReportsHandlerResponse(handler));
+        }
+
+        return handlersResponse;
+    }
+
+    async void DialogCloseAsync(dynamic result)
+    {
+        reportHandlers = await reportHandlersService.GetReportsHandlersAsync();
+        OnFilterChange();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,78 @@
+﻿@attribute [Authorize(Roles = RolesConstants.Administrator)]
+
+@inject IEvacuationCrewService evacuationCrewService
+@inject IEvacuationCrewmateService evacuationCrewmateService
+@inject ILocationService locationService
+@inject ITowTruckService towTruckService
+
+@inject NavigationManager navigationManager
+@inject NotificationService notificationService
+@inject DialogService dialogService
+
+<RadzenCard>
+    <div style="margin-bottom:20px">
+        <div style="margin-bottom: 5px;">
+            <b>Name: </b>
+            <div>
+                <RadzenTextBox @bind-Value="evacuationCrew.Name" />
+            </div>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <b>Districts: </b>
+            <div>
+                <RadzenDropDown @bind-Value="currentDistrictIds" Multiple="true" Data="districts" TextProperty="Name" ValueProperty="Id" AllowFiltering="true" />
+            </div>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <b>Crewmates: </b>
+            <div>
+                <RadzenDropDown @bind-Value="currentEvacuationCrewmatesIds" Multiple="true" Data="evacuationCrewmates" TextProperty="Name" ValueProperty="Id" AllowFiltering="true" />
+            </div>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <b>Tow truck: </b>
+            <div>
+                <RadzenDropDown @bind-Value="currentTowTruckId" Multiple="false" Data="towTrucks" TextProperty="Name" ValueProperty="Id" AllowFiltering="true" />
+            </div>
+        </div>
+    </div>
+    <div style="display: block; margin: auto;">
+        <RadzenButton Text="Create" Click="AddEvacuationCrewAsync" />
+        <RadzenButton Text="Cancel" Click="(args) => dialogService.Close(false)" />
+    </div>
+</RadzenCard>
+
+@code {
+    private EvacuationCrew evacuationCrew = new EvacuationCrew();
+
+    private IEnumerable<District> districts;
+    private IEnumerable<Guid> currentDistrictIds;
+
+    private IEnumerable<EvacuationCrewmate> evacuationCrewmates;
+    private IEnumerable<Guid> currentEvacuationCrewmatesIds;
+
+    private IEnumerable<TowTruck> towTrucks;
+    private Guid currentTowTruckId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        districts = await locationService.GetDistrictsAsync();
+        currentDistrictIds = new List<Guid>();
+
+        evacuationCrewmates = await evacuationCrewmateService.GetEvacuationCrewmatesAsync();
+        currentEvacuationCrewmatesIds = new List<Guid>();
+    }
+
+    private async Task AddEvacuationCrewAsync()
+    {
+        var currentEvacuationCrewmates = evacuationCrewmates.Where(ec => currentEvacuationCrewmatesIds.Contains(ec.Id));
+
+        evacuationCrew.EvacuationCrewmates = currentEvacuationCrewmates;
+        evacuationCrew.TowTruckId = currentTowTruckId;
+
+        await evacuationCrewService.CreateEvacuationCrewAsync(evacuationCrew, currentDistrictIds);
+
+        notificationService.Notify(NotificationSeverity.Success, "Evacuation crew has been created successfully.");
+        dialogService.Close(true);
+    }
+}

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:viewmodels="clr-namespace:ParkingControl.Mobile.ViewModels" x:DataType="viewmodels:LocationProvidingPageViewModel"
+             x:Class="ParkingControl.Mobile.Views.Reporting.LocationProvidingPage">
+    <ContentPage.Content>
+        <ScrollView>
+            <StackLayout VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                <StackLayout VerticalOptions="Start">
+                    <Frame BackgroundColor="Orange" Padding="24">
+                        <Label Text="incident address" HorizontalTextAlignment="Center"
+                            TextColor="White" FontSize="24"/>
+                    </Frame>
+                    <Label Text="District:"/>
+                    <Picker Title="Select district" ItemsSource="{Binding Districts}" ItemDisplayBinding="{Binding Name}"
+                            SelectedItem="{Binding SelectedDistrict}" />
+                    <Label Text="Address:"/>
+                    <Picker Title="Select district" ItemsSource="{Binding SelectedDistrict.Addresses}" ItemDisplayBinding="{Binding Name}"
+                            SelectedItem="{Binding SelectedAddress}" />
+                    <Label Text="Location:"/>
+                    <Picker Title="Select district" ItemsSource="{Binding SelectedAddress.Locations}" ItemDisplayBinding="{Binding Code}"
+                            SelectedItem="{Binding SelectedLocation}" />
+                    <Label Text="Additional details:"/>
+                    <Editor Text="{Binding AdditionalInfo}" />
+                </StackLayout>
+                <StackLayout VerticalOptions="EndAndExpand" 
+                             HorizontalOptions="Center" Orientation="Horizontal">
+                    <Button Text="Cancel" Clicked="CancelButton_Clicked"/>
+                    <Button Text="Confirm" Clicked="ConfirmButton_Clicked"/>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

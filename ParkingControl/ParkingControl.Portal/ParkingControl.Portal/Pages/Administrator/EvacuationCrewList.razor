@@ -1,0 +1,123 @@
+﻿@page "/evacuationcrews"
+
+@inject IEvacuationCrewService evacuationCrewService
+@inject ILocationService locationService
+@inject NavigationManager navigationManager
+@inject DialogService dialogService
+
+@attribute [Authorize(Roles = RolesConstants.Administrator)]
+
+@if (evacuationCrews != null)
+{
+    <RadzenCard>
+        <div style="margin-bottom: 20px;">
+            <RadzenButton Icon="add" Text="Create handler"
+                          Click="@(args => dialogService.Open<EvacuationCrewAddingDialog>("Evacuation crew creating"))" />
+        </div>
+        <RadzenGrid Data="@evacuationCrewResponses" AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                    TItem="EvacuationCrewResponse" AllowColumnResize="true" RowClick="(args) => OpenEvacuationCrew(args.Id)">
+            <Columns>
+                <RadzenGridColumn TItem="EvacuationCrewResponse" Property="Name" Title="Name" Width="200px" />
+                <RadzenGridColumn TItem="EvacuationCrewResponse" Property="IsAvailable" Title="Is available" Width="100px">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="currentAvailabilityState" TextProperty="Text" ValueProperty="Value" Style="width:100%"
+                                        Change=@OnFilterChange
+                                        Data="@(Enum.GetValues(typeof(BooleanState)).Cast<BooleanState>().Select(t => new { Text = $"{t}", Value = t }))" />
+
+                    </FilterTemplate>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="EvacuationCrewResponse" Property="ActiveReports" Title="Active reports" Width="150px" />
+                <RadzenGridColumn TItem="EvacuationCrewResponse" Property="Districts" Title="Districts" Bubble="true">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="currentDistrictIds" Multiple="true" Data="districts" TextProperty="Name" ValueProperty="Id"
+                                        Change="OnFilterChange" />
+                    </FilterTemplate>
+                </RadzenGridColumn>
+            </Columns>
+        </RadzenGrid>
+    </RadzenCard>
+}
+
+@code {
+    private IEnumerable<EvacuationCrew> evacuationCrews;
+    private IEnumerable<EvacuationCrew> filteredEvacuationCrews;
+    private IEnumerable<EvacuationCrewResponse> evacuationCrewResponses;
+
+    private IEnumerable<District> districts;
+    private IEnumerable<Guid> currentDistrictIds;
+
+    private BooleanState currentAvailabilityState = BooleanState.All;
+
+    public enum BooleanState : int
+    {
+        False,
+        True,
+        All = -1
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        evacuationCrews = await evacuationCrewService.GetEvacuationCrewsAsync();
+        districts = await locationService.GetDistrictsAsync();
+
+        currentDistrictIds = districts.Select(d => d.Id);
+        evacuationCrewResponses = ConvertGetResponse(evacuationCrews);
+
+        dialogService.OnClose += DialogCloseAsync;
+    }
+
+    private void OnFilterChange()
+    {
+        filteredEvacuationCrews = evacuationCrews;
+
+        if (currentAvailabilityState != BooleanState.All)
+            filteredEvacuationCrews = filteredEvacuationCrews.Where(rh => rh.IsAvailable == Convert.ToBoolean(currentAvailabilityState));
+
+        filteredEvacuationCrews = filteredEvacuationCrews.Where(rh => rh.EvacuationCrewDistricts.Select(rh => rh.DistrictId).Intersect(currentDistrictIds).Any());
+
+        evacuationCrewResponses = ConvertGetResponse(filteredEvacuationCrews);
+    }
+
+    private void OpenEvacuationCrew(Guid evacuationCrewId)
+    {
+        navigationManager.NavigateTo("/evacuationcrew" + "/" + evacuationCrewId);
+    }
+
+    private class EvacuationCrewResponse
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public bool IsAvailable { get; set; }
+        public int ActiveReports { get; set; }
+        public string Districts { get; set; }
+
+        public EvacuationCrewResponse(EvacuationCrew evacuationCrew)
+        {
+            Id = evacuationCrew.Id;
+            Name = evacuationCrew.Name;
+            IsAvailable = evacuationCrew.IsAvailable;
+
+            ActiveReports = evacuationCrew.Reports.Where(r => !r.IsCompleted).Count();
+            Districts = String.Join(", ", evacuationCrew.EvacuationCrewDistricts.Select(r => r.District.Name));
+        }
+    }
+
+    private IEnumerable<EvacuationCrewResponse> ConvertGetResponse(IEnumerable<EvacuationCrew> evacuationCrews)
+    {
+        var crewsResponse = new List<EvacuationCrewResponse>();
+
+        foreach (var crew in evacuationCrews)
+        {
+            crewsResponse.Add(new EvacuationCrewResponse(crew));
+        }
+
+        return crewsResponse;
+    }
+
+    async void DialogCloseAsync(dynamic result)
+    {
+        evacuationCrews = await evacuationCrewService.GetEvacuationCrewsAsync();
+        OnFilterChange();
+        StateHasChanged();
+    }
+}

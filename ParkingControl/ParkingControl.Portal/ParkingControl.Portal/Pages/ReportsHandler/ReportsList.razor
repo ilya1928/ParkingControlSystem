@@ -1,0 +1,80 @@
+﻿@page "/reportslist"
+
+@inject IReportService reportService
+@inject NavigationManager navigationManager
+
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+
+@attribute [Authorize(Roles = RolesConstants.ReportsHandler)]
+
+@if (reports != null)
+{
+    <RadzenCard>
+        <RadzenGrid Data="@filteredReports" AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                    TItem="Report" RowClick="(args) => OpenReport(args.Id)">
+            <Columns>
+                <RadzenGridColumn TItem="Report" Property="ReportedDate" Title="Reported date" />
+                <RadzenGridColumn TItem="Report" Property="LocationString" Title="Location" />
+                <RadzenGridColumn TItem="Report" Property="IsProcessed" Title="Is processed">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="CurrentProcessedState" TextProperty="Text" ValueProperty="Value" Style="width:100%"
+                                        Change=@OnFilterChange
+                                        Data="@(Enum.GetValues(typeof(BooleanState)).Cast<BooleanState>().Select(t => new { Text = $"{t}", Value = t }))" />
+
+                    </FilterTemplate>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="Report" Property="IsApproved" Title="Is approved">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="CurrentApprovedState" TextProperty="Text" ValueProperty="Value" Style="width:100%"
+                                        Change=@OnFilterChange
+                                        Data="@(Enum.GetValues(typeof(BooleanState)).Cast<BooleanState>().Select(t => new { Text = $"{t}", Value = t }))" />
+
+                    </FilterTemplate>
+                </RadzenGridColumn>
+            </Columns>
+        </RadzenGrid>
+    </RadzenCard>
+}
+
+@code {
+    private IEnumerable<Report> reports;
+    private IEnumerable<Report> filteredReports;
+
+    private BooleanState CurrentProcessedState;
+    private BooleanState CurrentApprovedState;
+
+    public enum BooleanState : int
+    {
+        False,
+        True,
+        All = -1
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var handlerName = httpContextAccessor.HttpContext.User.Identity.Name;
+
+        reports = await reportService.GetReportsAsync(handlerName);
+
+        filteredReports = reports
+            .Where(r => r.IsApproved == Convert.ToBoolean(CurrentApprovedState) &&
+            r.IsProcessed == Convert.ToBoolean(CurrentProcessedState));
+    }
+
+    private void OpenReport(Guid reportId)
+    {
+        navigationManager.NavigateTo("/reportprocessing" + "/" + reportId);
+    }
+
+    private void OnFilterChange()
+    {
+        filteredReports = reports;
+
+        if (CurrentProcessedState != BooleanState.All)
+            filteredReports = reports.Where(r => r.IsProcessed == Convert.ToBoolean(CurrentProcessedState));
+
+        if (CurrentApprovedState != BooleanState.All)
+            filteredReports = filteredReports.Where(r => r.IsApproved == Convert.ToBoolean(CurrentApprovedState));
+    }
+}

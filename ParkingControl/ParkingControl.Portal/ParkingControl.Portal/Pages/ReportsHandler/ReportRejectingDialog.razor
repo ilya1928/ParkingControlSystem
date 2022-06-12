@@ -1,0 +1,38 @@
+﻿@page "/reportrejectingdialog/{ReportId}"
+
+@inject IReportService ReportService
+@inject Radzen.DialogService DialogService
+
+<RadzenCard>
+    <RadzenTextArea @bind-Value="rejectionReason" Placeholder="Rejection reason.."
+                    Style="margin-bottom: 20px" />
+
+    <div style="display: block; margin: auto;">
+        <RadzenButton Text="Confirm" Style="width:150px;" 
+                      Disabled="@(rejectionReason == null || rejectionReason.Length == 0)"
+                      Click="() => AddRejectionReason()"/>
+        <RadzenButton Text="Cancel" Style="width:150px;" Click="(args) => DialogService.Close(false)" />
+    </div>
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public string ReportId { get; set; }
+
+    private string rejectionReason;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var guidReportId = Guid.Parse(ReportId);
+        var currentReport = await ReportService.GetReportByIdAsync(guidReportId);
+        rejectionReason = currentReport.RejectionReason;
+    }
+
+    private async Task AddRejectionReason()
+    {
+        var guidReportId = Guid.Parse(ReportId);
+        await ReportService.AddRejectionReasonToReport(guidReportId, rejectionReason);
+
+        DialogService.Close(true);
+    }
+}

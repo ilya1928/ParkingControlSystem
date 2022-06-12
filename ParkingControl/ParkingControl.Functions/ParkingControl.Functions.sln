@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingControl.Functions.PlateRecognition", "ParkingControl.Functions.PlateRecognition\ParkingControl.Functions.PlateRecognition.csproj", "{3A6558B2-4F79-44E0-8284-0EC94191D658}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingControl.Shared", "..\ParkingControl.Shared\ParkingControl.Shared\ParkingControl.Shared.csproj", "{AD7DEDD7-2FD1-4352-B032-8F06265D9DF3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingControl.Database", "..\ParkingControl.Database\ParkingControl.Database\ParkingControl.Database.csproj", "{A80AB4B9-5109-41C5-AF4C-6DE1C69D9CDB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A6558B2-4F79-44E0-8284-0EC94191D658}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A6558B2-4F79-44E0-8284-0EC94191D658}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A6558B2-4F79-44E0-8284-0EC94191D658}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A6558B2-4F79-44E0-8284-0EC94191D658}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD7DEDD7-2FD1-4352-B032-8F06265D9DF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD7DEDD7-2FD1-4352-B032-8F06265D9DF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD7DEDD7-2FD1-4352-B032-8F06265D9DF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD7DEDD7-2FD1-4352-B032-8F06265D9DF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A80AB4B9-5109-41C5-AF4C-6DE1C69D9CDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A80AB4B9-5109-41C5-AF4C-6DE1C69D9CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A80AB4B9-5109-41C5-AF4C-6DE1C69D9CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A80AB4B9-5109-41C5-AF4C-6DE1C69D9CDB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9722EDA1-BC4A-49D3-9E21-7B632CE81751}
+	EndGlobalSection
+EndGlobal

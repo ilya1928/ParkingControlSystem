@@ -1,0 +1,239 @@
+﻿@page "/statistics"
+
+<RadzenCard>
+    <span>
+        Period:
+        <RadzenDatePicker DateFormat="d" TValue="DateTime" Style="width: 120px"/>
+        -
+        <RadzenDatePicker DateFormat="d" TValue="DateTime" Style="width: 120px"/>
+        <RadzenButton Text="Submit"/>
+    </span>
+    <RadzenChart>
+        <RadzenLineSeries Smooth="true" Data="@completedReports" CategoryProperty="Date" Title="Completed" LineType="LineType.Dashed" ValueProperty="Revenue">
+            <RadzenMarkers MarkerType="MarkerType.Square" />
+        </RadzenLineSeries>
+        <RadzenLineSeries Smooth="true" Data="@receivedReports" CategoryProperty="Date" Title="Received" ValueProperty="Revenue">
+            <RadzenMarkers MarkerType="MarkerType.Circle" />
+        </RadzenLineSeries>
+        <RadzenCategoryAxis Padding="20" FormatString="{0:MMM}" />
+        <RadzenValueAxis>
+            <RadzenGridLines Visible="true" />
+            <RadzenAxisTitle Text="Number of reports" />
+        </RadzenValueAxis>
+    </RadzenChart>
+    <div class="row">
+        <div class="col-4">
+            <RadzenChart>
+                <RadzenPieSeries Data="@reportsByState" Title="State" CategoryProperty="State" ValueProperty="Count" />
+            </RadzenChart>
+        </div>
+            <div class="col-8">
+                <RadzenChart Style="">
+                    <RadzenColumnSeries Data="@reportsByDistrict" CategoryProperty="District" Title="Reports" ValueProperty="Count" />
+                    <RadzenValueAxis>
+                        <RadzenGridLines Visible="true" />
+                    </RadzenValueAxis>
+                    <RadzenBarOptions Radius="5" Margin="10" />
+                </RadzenChart>
+            </div>
+        </div>
+</RadzenCard>
+
+@code {
+    class DataItem
+    {
+        public DateTime Date { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    class ByDistrictsItem
+    {
+        public string District { get; set; }
+        public double Count { get; set; }
+    }
+
+    class ByStateItem
+    {
+        public string State { get; set; }
+        public double Count { get; set; }
+    }
+
+    DataItem[] completedReports = new DataItem[] {
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-01-01"),
+            Revenue = 234
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-02-01"),
+            Revenue = 269
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-03-01"),
+            Revenue = 233
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-04-01"),
+            Revenue = 244
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-05-01"),
+            Revenue = 214
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-06-01"),
+            Revenue = 253
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-07-01"),
+            Revenue = 274
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-08-01"),
+            Revenue = 284
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-09-01"),
+            Revenue = 273
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-10-01"),
+            Revenue = 282
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-11-01"),
+            Revenue = 289
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-12-01"),
+            Revenue = 294
+        }
+    };
+
+    DataItem[] receivedReports = new DataItem[] {
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-01-01"),
+            Revenue = 334
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-02-01"),
+            Revenue = 369
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-03-01"),
+            Revenue = 333
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-04-01"),
+            Revenue = 344
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-05-01"),
+            Revenue = 314
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-06-01"),
+            Revenue = 353
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-07-01"),
+            Revenue = 374
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-08-01"),
+            Revenue = 384
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-09-01"),
+            Revenue = 373
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-10-01"),
+            Revenue = 382
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-11-01"),
+            Revenue = 389
+        },
+        new DataItem
+        {
+            Date = DateTime.Parse("2019-12-01"),
+            Revenue = 394
+        }
+    };
+
+    ByDistrictsItem[] reportsByDistrict = new ByDistrictsItem[]
+    {
+        new ByDistrictsItem
+        {
+            District = "Голос.",
+            Count = 720
+        },
+        new ByDistrictsItem
+        {
+            District = "Дніпр.",
+            Count = 860
+        },
+        new ByDistrictsItem
+        {
+            District = "Печ.",
+            Count = 540
+        },
+        new ByDistrictsItem
+        {
+            District = "Дар.",
+            Count = 770
+        },
+        new ByDistrictsItem
+        {
+            District = "Свят.",
+            Count = 690
+        },
+        new ByDistrictsItem
+        {
+            District = "Десн.",
+            Count = 750
+        },
+        new ByDistrictsItem
+        {
+            District = "Обол.",
+            Count = 750
+        }
+    };
+
+    ByStateItem[] reportsByState = new ByStateItem[]
+{
+        new ByStateItem
+        {
+            State = "Approved",
+            Count = 3200
+        },
+        new ByStateItem
+        {
+            State = "Rejected",
+            Count = 1000
+        },
+};
+}

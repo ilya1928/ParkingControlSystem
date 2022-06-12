@@ -1,0 +1,76 @@
+﻿@attribute [Authorize(Roles = RolesConstants.Administrator)]
+
+@using Microsoft.AspNetCore.Identity
+
+@inject IReportsHandlerService reportsHandlerService
+@inject ILocationService locationService
+@inject UserManager<ApplicationUser> userManager
+@inject NotificationService notificationService
+@inject DialogService dialogService
+
+<RadzenCard>
+    <div style="margin-bottom:20px">
+        <div style="margin-bottom: 5px;">
+            <b>Name: </b>
+            <div>
+                <RadzenTextBox @bind-Value="reportsHandler.Name" />
+            </div>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <b>Email: </b>
+            <div>
+                <RadzenTextBox @bind-Value="applicationUser.Email" />
+            </div>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <b>Phone: </b>
+            <div>
+                <RadzenTextBox @bind-Value="applicationUser.PhoneNumber" />
+            </div>
+        </div>
+        <div style="margin-bottom: 5px;">
+            <b>Districts: </b>
+            <div>
+                <RadzenDropDown @bind-Value="currentDistrictIds" Multiple="true" Data="districts" TextProperty="Name" ValueProperty="Id" AllowFiltering="true"/>
+            </div>
+        </div>
+    </div>
+    <div style="display: block; margin: auto;">
+        <RadzenButton Text="Create" Click="AddReportsHandlerAsync" />
+        <RadzenButton Text="Cancel" Click="(args) => dialogService.Close(false)" />
+    </div>
+</RadzenCard>
+
+@code {
+    private ReportsHandler reportsHandler = new ReportsHandler();
+    private ApplicationUser applicationUser = new ApplicationUser();
+
+    private IEnumerable<District> districts;
+    private IEnumerable<Guid> currentDistrictIds;
+
+    protected override async Task OnInitializedAsync()
+    {
+        districts = await locationService.GetDistrictsAsync();
+        currentDistrictIds = new List<Guid>();
+    }
+
+    private async Task AddReportsHandlerAsync()
+    {
+        var userId = Guid.NewGuid().ToString();
+
+        applicationUser.Id = userId;
+        applicationUser.UserName = applicationUser.Email;
+
+        var password = PasswordHelper.Generate(10, 2);
+        var result = await userManager.CreateAsync(applicationUser, password);
+
+        await userManager.AddToRoleAsync(applicationUser, RolesConstants.ReportsHandler);
+
+        reportsHandler.ApplicationUserId = userId;
+        reportsHandler.IsActive = true;
+        await reportsHandlerService.CreateReportsHandlerAsync(reportsHandler, currentDistrictIds);
+
+        notificationService.Notify(NotificationSeverity.Success, "Handler has been created successfully.");
+        dialogService.Close(true);
+    }
+}

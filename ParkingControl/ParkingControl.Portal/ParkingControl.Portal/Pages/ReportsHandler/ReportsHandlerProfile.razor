@@ -1,0 +1,37 @@
+﻿@page "/handlerprofile"
+
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+@inject IReportsHandlerService reportsHandlerService
+
+<RadzenCard Style="margin-bottom: 20px">
+    @if (reportsHandler != null)
+    {
+        <ReportsHandlerProfileInfo ReportsHandler="reportsHandler"/>
+        <hr/>
+        <HandlerReportsStatistic Reports="reportsHandler.Reports" />
+    }
+</RadzenCard>
+
+@code {
+    private ReportsHandler reportsHandler;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var handlerName = httpContextAccessor.HttpContext.User.Identity.Name;
+        reportsHandler = await reportsHandlerService.GetReportsHandlerAsync(handlerName);
+    }
+
+    private async Task OnImageUploadCompleteAsync(UploadCompleteEventArgs args)
+    {
+        var uploadedFileId = JsonConvert.DeserializeObject<Guid>(args.RawResponse);
+        await reportsHandlerService.UpdateProfileImageLinkAsync(uploadedFileId, reportsHandler.Id);
+        StateHasChanged();
+    }
+
+    private async Task RemoveProfileImageAsync()
+    {
+        await reportsHandlerService.RemoveProfileImageAsync(reportsHandler.Id);
+        StateHasChanged();
+    }
+}

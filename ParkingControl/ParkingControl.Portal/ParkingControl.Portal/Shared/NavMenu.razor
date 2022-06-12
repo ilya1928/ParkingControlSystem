@@ -1,0 +1,51 @@
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">Parking Control</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <AuthorizeView Roles=@RolesConstants.ReportsHandler>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="handlerprofile" Match="NavLinkMatch.All">
+                    <span class="oi oi-account-login" aria-hidden="true"></span> Profile
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="reportslist" Match="NavLinkMatch.All">
+                    <span class="oi oi-book" aria-hidden="true"></span> Reports
+                </NavLink>
+            </li>
+        </AuthorizeView>
+        <AuthorizeView Roles=@RolesConstants.Administrator>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="statistics" Match="NavLinkMatch.All">
+                    <span class="oi oi-tablet" aria-hidden="true"></span> Statistics
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="reporthandlers" Match="NavLinkMatch.All">
+                    <span class="oi oi-document" aria-hidden="true"></span> Report handlers
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="evacuationcrews" Match="NavLinkMatch.All">
+                    <span class="oi oi-crop" aria-hidden="true"></span> Evacuation crews
+                </NavLink>
+            </li>
+        </AuthorizeView>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
